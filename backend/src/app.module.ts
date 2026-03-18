@@ -4,6 +4,7 @@ import { ChatModule } from './chat/chat.module';
 import { FilesModule } from './files/files.module';
 import { SharedModule } from './shared/shared.module';
 import { UsersModule } from './users/users.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     FilesModule,
     ChatModule,
+    UploadsModule,
   ],
 })
 export class AppModule {}
