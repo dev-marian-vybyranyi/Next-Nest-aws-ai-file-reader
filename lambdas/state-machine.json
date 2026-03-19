@@ -1,0 +1,52 @@
+{
+  "Comment": "PDF processing pipeline",
+  "StartAt": "ExtractText",
+  "States": {
+    "ExtractText": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:593212028561:function:pdf-chat-lambdas-dev-extractText",
+      "Next": "ChunkText",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "UpdateStatusError",
+          "ResultPath": "$.error"
+        }
+      ]
+    },
+    "ChunkText": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:593212028561:function:pdf-chat-lambdas-dev-chunkText",
+      "Next": "EmbedAndIndex",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "UpdateStatusError",
+          "ResultPath": "$.error"
+        }
+      ]
+    },
+    "EmbedAndIndex": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:593212028561:function:pdf-chat-lambdas-dev-embedAndIndex",
+      "Next": "UpdateStatusSuccess",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "UpdateStatusError",
+          "ResultPath": "$.error"
+        }
+      ]
+    },
+    "UpdateStatusSuccess": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:593212028561:function:pdf-chat-lambdas-dev-updateStatusSuccess",
+      "End": true
+    },
+    "UpdateStatusError": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:593212028561:function:pdf-chat-lambdas-dev-updateStatusError",
+      "End": true
+    }
+  }
+}
