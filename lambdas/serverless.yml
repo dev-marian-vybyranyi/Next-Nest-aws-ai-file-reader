@@ -12,6 +12,7 @@ provider:
     PINECONE_API_KEY: ${env:PINECONE_API_KEY}
     PINECONE_INDEX: ${env:PINECONE_INDEX}
     OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    STATE_MACHINE_ARN: arn:aws:states:us-east-1:593212028561:stateMachine:pdf-chat-pipeline
   iam:
     role:
       statements:
@@ -30,8 +31,24 @@ provider:
           Resource:
             - "arn:aws:dynamodb:us-east-1:593212028561:table/pdf-chat-files"
             - "arn:aws:dynamodb:us-east-1:593212028561:table/pdf-chat-files/index/*"
+        - Effect: Allow
+          Action:
+            - states:StartExecution
+          Resource: "arn:aws:states:us-east-1:593212028561:stateMachine:pdf-chat-pipeline"
 
 functions:
+  s3Trigger:
+    handler: src/steps/s3Trigger.handler
+    timeout: 30
+    events:
+      - s3:
+          bucket: pdf-chat-uploads-bucket-for-files
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploads/
+            - suffix: .pdf
+          existing: true
+
   extractText:
     handler: src/steps/extractText.handler
     timeout: 120
