@@ -1,0 +1,57 @@
+service: pdf-chat-lambdas
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${env:AWS_REGION}
+  timeout: 120
+  memorySize: 512
+  environment:
+    AWS_S3_BUCKET: ${env:AWS_S3_BUCKET}
+    DYNAMODB_FILES_TABLE: ${env:DYNAMODB_FILES_TABLE}
+    PINECONE_API_KEY: ${env:PINECONE_API_KEY}
+    PINECONE_INDEX: ${env:PINECONE_INDEX}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+          Resource: "arn:aws:s3:::pdf-chat-uploads-bucket-for-files/*"
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+          Resource:
+            - "arn:aws:dynamodb:us-east-1:593212028561:table/pdf-chat-files"
+            - "arn:aws:dynamodb:us-east-1:593212028561:table/pdf-chat-files/index/*"
+
+functions:
+  extractText:
+    handler: src/steps/extractText.handler
+    timeout: 120
+
+  chunkText:
+    handler: src/steps/chunkText.handler
+    timeout: 60
+
+  embedAndIndex:
+    handler: src/steps/embedAndIndex.handler
+    timeout: 300
+    memorySize: 1024
+
+  updateStatusSuccess:
+    handler: src/steps/updateStatusSuccess.handler
+    timeout: 30
+
+  updateStatusError:
+    handler: src/steps/updateStatusError.handler
+    timeout: 30
+
+plugins:
+  - serverless-plugin-typescript
