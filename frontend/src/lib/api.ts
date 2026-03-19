@@ -6,7 +6,7 @@ import {
   FileStatusResponse,
   ChatAskRequest,
   ChatAskResponse,
-} from "./types";
+} from "../types/apiTypes";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
