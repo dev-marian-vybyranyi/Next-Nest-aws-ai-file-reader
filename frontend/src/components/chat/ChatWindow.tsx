@@ -20,7 +20,7 @@ export function ChatWindow({ email, onLogout }: Props) {
 
   const isReady = file?.status === "success";
   return (
-    <div className="min-h-screen bg-blue-950 flex flex-col text-white">
+    <div className="h-screen bg-blue-950 flex flex-col text-white overflow-hidden">
       <header className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">PDF Chat</h1>
         <div className="flex items-center gap-4">
@@ -36,7 +36,7 @@ export function ChatWindow({ email, onLogout }: Props) {
         </div>
       </header>
 
-      <main className="flex flex-1 container mx-auto px-4 py-8 gap-8">
+      <main className="flex flex-1 container mx-auto px-4 py-8 gap-8 overflow-hidden">
         <aside className="w-80 shrink-0">
           {!file ? (
             <FileUpload
