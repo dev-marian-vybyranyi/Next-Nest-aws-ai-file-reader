@@ -18,17 +18,17 @@ interface Props {
 const statusConfig = {
   pending: {
     label: "Processing...",
-    className: "bg-yellow-100 text-yellow-700",
+    className: "bg-white/5 border border-white/10 text-yellow-400",
   },
-  success: { label: "Ready", className: "bg-green-100 text-green-700" },
-  error: { label: "Error", className: "bg-red-100 text-red-700" },
+  success: { label: "Ready", className: "bg-white/5 border border-white/10 text-blue-400" },
+  error: { label: "Error", className: "bg-white/5 border border-white/10 text-red-400" },
 };
 
 export function FileStatus({ file, isDeleting, onDelete }: Props) {
   const config = statusConfig[file.status as keyof typeof statusConfig];
 
   return (
-    <Card>
+    <Card className="border-white/10 bg-slate-900 text-white">
       <CardHeader>
         <CardTitle className="text-sm">Your Document</CardTitle>
       </CardHeader>
@@ -45,7 +45,7 @@ export function FileStatus({ file, isDeleting, onDelete }: Props) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-red-500 hover:text-red-600"
+          className="w-full border-white/10 bg-white/5 text-red-400 hover:bg-white/10 hover:text-red-300"
           onClick={onDelete}
           disabled={isDeleting}
         >
