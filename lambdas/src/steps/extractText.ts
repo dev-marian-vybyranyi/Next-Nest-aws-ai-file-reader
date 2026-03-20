@@ -1,8 +1,13 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { PDFParse } from "pdf-parse";
 import { Readable } from "stream";
+import { extractText } from "unpdf";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION ?? "us-east-1" });
+
+async function extractTextFromPdf(buffer: Buffer): Promise<string> {
+  const result = await extractText(new Uint8Array(buffer), { mergePages: true });
+  return (result.text as string).trim();
+}
 
 export async function handler(event: any) {
   console.log("ExtractText input:", JSON.stringify(event));
@@ -23,10 +28,7 @@ export async function handler(event: any) {
   }
   const buffer = Buffer.concat(chunks);
 
-  const parser = new PDFParse({ data: buffer });
-  const parsed = await parser.getText();
-  const text = parsed.text.trim();
-
+  const text = await extractTextFromPdf(buffer);
   console.log(`Extracted ${text.length} characters`);
 
   return { fileId, s3Key, email, text };

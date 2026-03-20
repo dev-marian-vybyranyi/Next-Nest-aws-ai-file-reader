@@ -18,7 +18,7 @@
     "@aws-sdk/lib-dynamodb": "^3.1012.0",
     "@pinecone-database/pinecone": "^7.1.0",
     "openai": "^6.32.0",
-    "pdf-parse": "^2.4.5"
+    "unpdf": "^1.4.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
