@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
 import { useFile } from "@/hooks/useFile";
 import { ChatInput } from "./ChatInput";
+import { MessageList } from "./MessageList";
 
 interface Props {
   email: string;
@@ -15,7 +16,7 @@ interface Props {
 export function ChatWindow({ email, onLogout }: Props) {
   const { file, uploadError, isUploading, isDeleting, upload, deleteFile } =
     useFile(email);
-  const { isThinking, sendMessage } = useChat(email);
+  const { messages, isThinking, sendMessage } = useChat(email);
 
   const isReady = file?.status === "success";
   return (
@@ -52,7 +53,12 @@ export function ChatWindow({ email, onLogout }: Props) {
           )}
         </aside>
 
-        <div className="flex-1 flex items-center justify-center p-12 text-center border border-white/10 rounded-xl bg-slate-900/20">
+        <div className="flex-1 flex flex-col border border-white/10 rounded-xl bg-slate-900/20 overflow-hidden">
+          <MessageList
+            messages={messages}
+            isThinking={isThinking}
+            fileStatus={file?.status}
+          />
           <ChatInput
             onSend={sendMessage}
             disabled={!isReady}
