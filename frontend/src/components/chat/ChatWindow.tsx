@@ -16,7 +16,7 @@ interface Props {
 export function ChatWindow({ email, onLogout }: Props) {
   const { file, uploadError, isUploading, isDeleting, upload, deleteFile } =
     useFile(email);
-  const { messages, isThinking, sendMessage } = useChat(email);
+  const { messages, isThinking, sendMessage, clearMessages } = useChat(email);
 
   const isReady = file?.status === "success";
   return (
@@ -48,7 +48,7 @@ export function ChatWindow({ email, onLogout }: Props) {
             <FileStatus
               file={file}
               isDeleting={isDeleting}
-              onDelete={() => deleteFile()}
+              onDelete={() => { deleteFile(); clearMessages(); }}
             />
           )}
         </aside>

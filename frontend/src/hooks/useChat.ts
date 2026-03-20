@@ -32,9 +32,12 @@ export function useChat(email: string) {
     askMutation.mutate(question);
   };
 
+  const clearMessages = () => setMessages([]);
+
   return {
     messages,
     isThinking: askMutation.isPending,
     sendMessage,
+    clearMessages,
   };
 }
