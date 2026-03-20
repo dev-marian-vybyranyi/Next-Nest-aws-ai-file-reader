@@ -10,6 +10,7 @@ export async function handler(event: any) {
 
   const records = chunks.map((chunk: string, i: number) => ({
     _id: `${fileId}-chunk-${i}`,
+    text: chunk,
     chunk_text: chunk,
     email,
     fileId,
@@ -19,8 +20,8 @@ export async function handler(event: any) {
   const BATCH_SIZE = 50;
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
-    await index.upsertRecords(batch);
-    console.log(`Indexed batch ${i / BATCH_SIZE + 1}`);
+    await index.upsertRecords({ records: batch });
+    console.log(`Indexed batch ${Math.floor(i / BATCH_SIZE) + 1}`);
   }
 
   console.log(`Successfully indexed ${records.length} chunks`);
