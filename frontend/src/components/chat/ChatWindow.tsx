@@ -3,7 +3,9 @@
 import { FileStatus } from "@/components/files/FileStatus";
 import { FileUpload } from "@/components/files/FileUpload";
 import { Button } from "@/components/ui/button";
+import { useChat } from "@/hooks/useChat";
 import { useFile } from "@/hooks/useFile";
+import { ChatInput } from "./ChatInput";
 
 interface Props {
   email: string;
@@ -13,6 +15,9 @@ interface Props {
 export function ChatWindow({ email, onLogout }: Props) {
   const { file, uploadError, isUploading, isDeleting, upload, deleteFile } =
     useFile(email);
+  const { isThinking, sendMessage } = useChat(email);
+
+  const isReady = file?.status === "success";
   return (
     <div className="min-h-screen bg-blue-950 flex flex-col text-white">
       <header className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
@@ -48,7 +53,11 @@ export function ChatWindow({ email, onLogout }: Props) {
         </aside>
 
         <div className="flex-1 flex items-center justify-center p-12 text-center border border-white/10 rounded-xl bg-slate-900/20">
-          <p className="text-slate-400">Upload a PDF to start chatting</p>
+          <ChatInput
+            onSend={sendMessage}
+            disabled={!isReady}
+            isLoading={isThinking}
+          />
         </div>
       </main>
     </div>
