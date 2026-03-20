@@ -5,8 +5,8 @@ export class CreateFileDto {
   email: string;
 
   @IsString()
-  filename: string;
+  s3Key: string;
 
   @IsString()
-  s3Key: string;
+  filename: string;
 }

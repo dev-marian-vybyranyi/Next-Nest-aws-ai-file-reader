@@ -35,6 +35,6 @@ export class UploadsService {
       Expires: 86400,
     });
 
-    return { url, fields, fileId };
+    return { fileId, s3Key, url, fields };
   }
 }
