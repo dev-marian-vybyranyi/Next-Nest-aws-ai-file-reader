@@ -76,6 +76,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(uuid|openai|@pinecone-database)/)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
