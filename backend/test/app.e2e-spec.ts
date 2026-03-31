@@ -32,12 +32,15 @@ describe('App (e2e)', () => {
     getFileByEmail: jest.fn().mockResolvedValue(mockFile),
     deleteFile: jest.fn().mockResolvedValue({ success: true }),
     updateFileStatus: jest.fn().mockResolvedValue(undefined),
+    askQuestionAboutFile: jest
+      .fn()
+      .mockResolvedValue({ answer: 'Test answer', chunksUsed: 3 }),
   };
 
   const chatServiceMock = {
-    askQuestion: jest
+    generateAnswer: jest
       .fn()
-      .mockResolvedValue({ answer: 'Test answer', chunksUsed: 3 }),
+      .mockResolvedValue({ answer: 'Test answer' }),
   };
 
   const uploadsServiceMock = {
@@ -81,9 +84,12 @@ describe('App (e2e)', () => {
     filesServiceMock.getFileStatus.mockResolvedValue(mockFile);
     filesServiceMock.getFileByEmail.mockResolvedValue(mockFile);
     filesServiceMock.deleteFile.mockResolvedValue({ success: true });
-    chatServiceMock.askQuestion.mockResolvedValue({
+    filesServiceMock.askQuestionAboutFile.mockResolvedValue({
       answer: 'Test answer',
       chunksUsed: 3,
+    });
+    chatServiceMock.generateAnswer.mockResolvedValue({
+      answer: 'Test answer',
     });
     uploadsServiceMock.getPresignedUrl.mockResolvedValue({
       fileId: 'new-file-id',
@@ -190,10 +196,10 @@ describe('App (e2e)', () => {
     });
   });
 
-  describe('POST /api/chat/ask', () => {
+  describe('POST /api/files/ask', () => {
     it('should return answer from AI', async () => {
       const res = await request(app.getHttpServer())
-        .post('/api/chat/ask')
+        .post('/api/files/ask')
         .send({ email: 'user@test.com', question: 'What is this document?' })
         .expect(201);
 
@@ -202,14 +208,14 @@ describe('App (e2e)', () => {
 
     it('should return 400 for invalid email', async () => {
       await request(app.getHttpServer())
-        .post('/api/chat/ask')
+        .post('/api/files/ask')
         .send({ email: 'bad-email', question: 'Some question here' })
         .expect(400);
     });
 
     it('should return 400 when question is too short', async () => {
       await request(app.getHttpServer())
-        .post('/api/chat/ask')
+        .post('/api/files/ask')
         .send({ email: 'user@test.com', question: 'Hi' })
         .expect(400);
     });

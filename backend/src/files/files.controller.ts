@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { AskQuestionDto } from './dto/askQuestion.dto';
 import { CreateFileDto } from './dto/createFile.dto';
 import { FilesService } from './files.service';
 
@@ -16,10 +17,14 @@ export class FilesController {
   async getStatus(@Param('fileId') fileId: string) {
     return this.filesService.getFileStatus(fileId);
   }
-
+  @Post('ask')
+  async askQuestion(@Body() body: AskQuestionDto) {
+    return this.filesService.askQuestionAboutFile(body.email, body.question);
+  }
 
   @Delete(':email')
   async deleteFile(@Param('email') email: string) {
     return this.filesService.deleteFile(email);
   }
 }
+

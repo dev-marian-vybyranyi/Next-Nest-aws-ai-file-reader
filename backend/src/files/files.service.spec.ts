@@ -1,8 +1,16 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ChatService } from '../chat/chat.service';
 import { DynamoDBService } from '../shared/dynamodb.service';
 import { FilesService } from './files.service';
+
+const mockSearchRecords = jest.fn();
+const mockIndex = jest.fn().mockReturnValue({ searchRecords: mockSearchRecords });
+jest.mock('@pinecone-database/pinecone', () => ({
+  __esModule: true,
+  Pinecone: jest.fn().mockImplementation(() => ({ index: mockIndex })),
+}));
 
 const mockS3Send = jest.fn();
 jest.mock('@aws-sdk/client-s3', () => ({
@@ -24,10 +32,16 @@ const mockFile = {
 describe('FilesService', () => {
   let service: FilesService;
   let mockDbSend: jest.Mock;
+  let mockChatService: Partial<Record<keyof ChatService, jest.Mock>>;
 
   beforeEach(async () => {
     mockDbSend = jest.fn();
     mockS3Send.mockReset();
+    mockSearchRecords.mockReset();
+
+    mockChatService = {
+      generateAnswer: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -35,6 +49,10 @@ describe('FilesService', () => {
         {
           provide: DynamoDBService,
           useValue: { client: { send: mockDbSend } },
+        },
+        {
+          provide: ChatService,
+          useValue: mockChatService,
         },
         {
           provide: ConfigService,
@@ -46,6 +64,8 @@ describe('FilesService', () => {
                 AWS_REGION: 'us-east-1',
                 AWS_ACCESS_KEY_ID: 'test-key',
                 AWS_SECRET_ACCESS_KEY: 'test-secret',
+                PINECONE_API_KEY: 'test-pinecone',
+                PINECONE_INDEX: 'test-index',
               })[key],
           },
         },
@@ -171,6 +191,51 @@ describe('FilesService', () => {
       await service.updateFileStatus('unknown-id', 'success');
 
       expect(mockDbSend).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('askQuestionAboutFile', () => {
+    it('should throw BadRequestException if no file found', async () => {
+      mockDbSend.mockResolvedValue({ Items: [] });
+
+      await expect(
+        service.askQuestionAboutFile('user@test.com', 'What is this?'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if file is pending', async () => {
+      mockDbSend.mockResolvedValue({ Items: [mockFile] });
+
+      await expect(
+        service.askQuestionAboutFile('user@test.com', 'What is this?'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if no relevant chunks found', async () => {
+      mockDbSend.mockResolvedValue({ Items: [{ ...mockFile, status: 'success' }] });
+      mockSearchRecords.mockResolvedValue({ result: { hits: [] } });
+
+      await expect(
+        service.askQuestionAboutFile('user@test.com', 'What is this?'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should return answer and chunksUsed on success', async () => {
+      mockDbSend.mockResolvedValue({ Items: [{ ...mockFile, status: 'success' }] });
+      mockSearchRecords.mockResolvedValue({
+        result: {
+          hits: [{ fields: { chunk_text: 'Context' } }],
+        },
+      });
+      mockChatService.generateAnswer!.mockResolvedValue({
+        answer: 'This is the answer.',
+      });
+
+      const result = await service.askQuestionAboutFile('user@test.com', 'What is this?');
+
+      expect(result).toEqual({ answer: 'This is the answer.', chunksUsed: 1 });
+      expect(mockSearchRecords).toHaveBeenCalledTimes(1);
+      expect(mockChatService.generateAnswer).toHaveBeenCalledTimes(1);
     });
   });
 });

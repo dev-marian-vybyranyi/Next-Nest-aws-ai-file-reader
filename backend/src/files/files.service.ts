@@ -10,9 +10,11 @@ import {
   PutCommand,
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { Pinecone } from '@pinecone-database/pinecone';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
+import { ChatService } from '../chat/chat.service';
 import { DynamoDBService } from '../shared/dynamodb.service';
 
 @Injectable()
@@ -20,10 +22,13 @@ export class FilesService {
   private readonly table: string;
   private readonly bucket: string;
   private readonly s3: S3Client;
+  private readonly pinecone: Pinecone;
+  private readonly indexName: string;
 
   constructor(
     private readonly dynamodb: DynamoDBService,
     private readonly config: ConfigService,
+    private readonly chatService: ChatService,
   ) {
     this.table = this.config.get('DYNAMODB_FILES_TABLE')!;
     this.bucket = this.config.get('AWS_S3_BUCKET')!;
@@ -34,6 +39,10 @@ export class FilesService {
         secretAccessKey: this.config.get('AWS_SECRET_ACCESS_KEY')!,
       },
     });
+    this.pinecone = new Pinecone({
+      apiKey: this.config.get('PINECONE_API_KEY')!,
+    });
+    this.indexName = this.config.get('PINECONE_INDEX')!;
   }
 
   async getFileByEmail(email: string) {
@@ -148,4 +157,38 @@ export class FilesService {
       }),
     );
   }
+
+  async askQuestionAboutFile(email: string, question: string) {
+    const file = await this.getFileByEmail(email);
+    if (!file) {
+      throw new BadRequestException('No file found. Please upload a PDF first.');
+    }
+    if (file.status !== 'success') {
+      throw new BadRequestException(`File is not ready yet. Current status: ${file.status}`);
+    }
+
+    const index = this.pinecone.index(this.indexName);
+    const searchResults = await index.searchRecords({
+      query: {
+        topK: 5,
+        inputs: { text: question },
+        filter: { email: { $eq: email } },
+      },
+      fields: ['chunk_text', 'email'],
+    });
+
+    const chunks = searchResults.result.hits?.map(
+      (hit) => hit.fields['chunk_text'] as string,
+    ) || [];
+
+    if (chunks.length === 0) {
+      throw new BadRequestException('No relevant content found in your document.');
+    }
+
+    const context = chunks.join('\n\n---\n\n');
+    const { answer } = await this.chatService.generateAnswer(context, question);
+
+    return { answer, chunksUsed: chunks.length };
+  }
 }
+
