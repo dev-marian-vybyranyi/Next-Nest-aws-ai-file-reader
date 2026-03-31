@@ -47,12 +47,12 @@ describe('UsersService', () => {
     });
   });
 
-  describe('upsertUser', () => {
+  describe('getOrCreateUser', () => {
     it('should return existing user without creating a new one', async () => {
       const existing = { email: 'existing@test.com', createdAt: '2024-01-01' };
       mockDbSend.mockResolvedValue({ Item: existing });
 
-      const result = await service.upsertUser('existing@test.com');
+      const result = await service.getOrCreateUser('existing@test.com');
 
       expect(result).toEqual(existing);
       expect(mockDbSend).toHaveBeenCalledTimes(1);
@@ -63,7 +63,7 @@ describe('UsersService', () => {
         .mockResolvedValueOnce({ Item: undefined })
         .mockResolvedValueOnce({});
 
-      const result = await service.upsertUser('new@test.com');
+      const result = await service.getOrCreateUser('new@test.com');
 
       expect(result).toMatchObject({ email: 'new@test.com' });
       expect(result).toHaveProperty('createdAt');

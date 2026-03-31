@@ -24,7 +24,7 @@ export class UsersService {
     return result.Item ?? null;
   }
 
-  async upsertUser(email: string) {
+  async getOrCreateUser(email: string) {
     const existing = await this.findUser(email);
     if (existing) return existing;
 
