@@ -14,7 +14,7 @@ export class UsersService {
     this.table = this.config.get('DYNAMODB_USERS_TABLE')!;
   }
 
-  async getUser(email: string) {
+  async findUser(email: string) {
     const result = await this.dynamodb.client.send(
       new GetCommand({
         TableName: this.table,
@@ -25,7 +25,7 @@ export class UsersService {
   }
 
   async upsertUser(email: string) {
-    const existing = await this.getUser(email);
+    const existing = await this.findUser(email);
     if (existing) return existing;
 
     const user = {

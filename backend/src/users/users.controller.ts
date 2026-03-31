@@ -7,8 +7,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get(':email')
-  async getUser(@Param('email') email: string) {
-    return this.usersService.getUser(email);
+  async findUser(@Param('email') email: string) {
+    return this.usersService.findUser(email);
   }
 
   @Post()

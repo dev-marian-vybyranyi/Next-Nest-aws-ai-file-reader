@@ -28,12 +28,12 @@ describe('UsersService', () => {
     service = module.get<UsersService>(UsersService);
   });
 
-  describe('getUser', () => {
+  describe('findUser', () => {
     it('should return user when found', async () => {
       const user = { email: 'test@test.com', createdAt: '2024-01-01' };
       mockDbSend.mockResolvedValue({ Item: user });
 
-      const result = await service.getUser('test@test.com');
+      const result = await service.findUser('test@test.com');
 
       expect(result).toEqual(user);
     });
@@ -41,7 +41,7 @@ describe('UsersService', () => {
     it('should return null when user not found', async () => {
       mockDbSend.mockResolvedValue({ Item: undefined });
 
-      const result = await service.getUser('notfound@test.com');
+      const result = await service.findUser('notfound@test.com');
 
       expect(result).toBeNull();
     });
