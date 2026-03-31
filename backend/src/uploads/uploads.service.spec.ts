@@ -1,36 +1,23 @@
-import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { S3Service } from '../libs/s3/s3.service';
 import { UploadsService } from './uploads.service';
 
-jest.mock('@aws-sdk/client-s3', () => ({
-  S3Client: jest.fn().mockImplementation(() => ({})),
-}));
-
-const mockCreatePresignedPost = jest.fn();
-jest.mock('@aws-sdk/s3-presigned-post', () => ({
-  createPresignedPost: (...args: any[]) => mockCreatePresignedPost(...args),
-}));
+const mockS3Service = {
+  createPresignedPost: jest.fn(),
+};
 
 describe('UploadsService', () => {
   let service: UploadsService;
 
   beforeEach(async () => {
-    mockCreatePresignedPost.mockReset();
+    mockS3Service.createPresignedPost.mockReset();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UploadsService,
         {
-          provide: ConfigService,
-          useValue: {
-            get: (key: string) =>
-              ({
-                AWS_S3_BUCKET: 'test-bucket',
-                AWS_REGION: 'us-east-1',
-                AWS_ACCESS_KEY_ID: 'test-key',
-                AWS_SECRET_ACCESS_KEY: 'test-secret',
-              })[key],
-          },
+          provide: S3Service,
+          useValue: mockS3Service,
         },
       ],
     }).compile();
@@ -40,7 +27,7 @@ describe('UploadsService', () => {
 
   describe('getPresignedUrl', () => {
     it('should return fileId, s3Key, url and fields', async () => {
-      mockCreatePresignedPost.mockResolvedValue({
+      mockS3Service.createPresignedPost.mockResolvedValue({
         url: 'https://test-bucket.s3.amazonaws.com/',
         fields: { key: 'tmp/some-uuid.pdf', 'Content-Type': 'application/pdf' },
       });
@@ -55,7 +42,7 @@ describe('UploadsService', () => {
     });
 
     it('should use tmp prefix for the S3 key', async () => {
-      mockCreatePresignedPost.mockResolvedValue({
+      mockS3Service.createPresignedPost.mockResolvedValue({
         url: 'https://s3.amazonaws.com/',
         fields: {},
       });
@@ -65,19 +52,18 @@ describe('UploadsService', () => {
       expect(result.s3Key).toContain('tmp/');
     });
 
-    it('should call createPresignedPost with correct bucket and PDF constraints', async () => {
-      mockCreatePresignedPost.mockResolvedValue({
+    it('should call createPresignedPost with correct constraints', async () => {
+      mockS3Service.createPresignedPost.mockResolvedValue({
         url: 'https://s3.amazonaws.com/',
         fields: {},
       });
 
       await service.getPresignedUrl();
 
-      expect(mockCreatePresignedPost).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(mockS3Service.createPresignedPost).toHaveBeenCalledWith(
         expect.objectContaining({
-          Bucket: 'test-bucket',
-          Fields: { 'Content-Type': 'application/pdf' },
+          contentType: 'application/pdf',
+          maxSize: 10485760,
         }),
       );
     });
