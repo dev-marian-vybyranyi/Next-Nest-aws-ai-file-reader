@@ -17,10 +17,6 @@ export class FilesController {
     return this.filesService.getFileStatus(fileId);
   }
 
-  @Get('by-email/:email')
-  async getFileByEmail(@Param('email') email: string) {
-    return this.filesService.getFileByEmail(email);
-  }
 
   @Delete(':email')
   async deleteFile(@Param('email') email: string) {

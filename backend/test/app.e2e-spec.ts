@@ -160,10 +160,10 @@ describe('App (e2e)', () => {
     });
   });
 
-  describe('GET /api/files/by-email/:email', () => {
+  describe('GET /api/users/:email/files', () => {
     it('should return file for given email', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/files/by-email/user@test.com')
+        .get('/api/users/user@test.com/files')
         .expect(200);
 
       expect(res.body).toMatchObject({ email: 'user@test.com' });
@@ -173,7 +173,7 @@ describe('App (e2e)', () => {
       filesServiceMock.getFileByEmail.mockResolvedValue(null);
 
       const res = await request(app.getHttpServer())
-        .get('/api/files/by-email/nobody@test.com')
+        .get('/api/users/nobody@test.com/files')
         .expect(200);
 
       expect(res.body?.email).toBeUndefined();
