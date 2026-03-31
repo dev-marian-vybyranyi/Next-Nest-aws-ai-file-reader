@@ -22,8 +22,8 @@ describe('App (e2e)', () => {
   let app: INestApplication<App>;
 
   const usersServiceMock = {
-    getUser: jest.fn().mockResolvedValue(mockUser),
-    upsertUser: jest.fn().mockResolvedValue(mockUser),
+    findUser: jest.fn().mockResolvedValue(mockUser),
+    getOrCreateUser: jest.fn().mockResolvedValue(mockUser),
   };
 
   const filesServiceMock = {
@@ -75,8 +75,8 @@ describe('App (e2e)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    usersServiceMock.getUser.mockResolvedValue(mockUser);
-    usersServiceMock.upsertUser.mockResolvedValue(mockUser);
+    usersServiceMock.findUser.mockResolvedValue(mockUser);
+    usersServiceMock.getOrCreateUser.mockResolvedValue(mockUser);
     filesServiceMock.createFile.mockResolvedValue(mockFile);
     filesServiceMock.getFileStatus.mockResolvedValue(mockFile);
     filesServiceMock.getFileByEmail.mockResolvedValue(mockFile);
@@ -150,10 +150,10 @@ describe('App (e2e)', () => {
     });
   });
 
-  describe('GET /api/files/status/:fileId', () => {
+  describe('GET /api/files/:fileId/status', () => {
     it('should return file status', async () => {
       const res = await request(app.getHttpServer())
-        .get('/api/files/status/file-123')
+        .get('/api/files/file-123/status')
         .expect(200);
 
       expect(res.body).toMatchObject({ fileId: 'file-123' });

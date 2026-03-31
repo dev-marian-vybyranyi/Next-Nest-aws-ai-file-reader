@@ -12,7 +12,7 @@ export class FilesController {
     return this.filesService.createFile(body.email, body.filename, body.s3Key);
   }
 
-  @Get('status/:fileId')
+  @Get(':fileId/status')
   async getStatus(@Param('fileId') fileId: string) {
     return this.filesService.getFileStatus(fileId);
   }
